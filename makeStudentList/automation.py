@@ -9,9 +9,9 @@ from shutil import copyfile
 from datetime import datetime
 from pptx import Presentation
 
-login_id = "edu" # 관리자 id
-login_pw = "12345!" # 관리자 password 
-cha_name = "20-013차 포스코 취업아카데미(포항10차)" #다운받고자 하는 차수명(정확해야 함)
+login_id = "" # 관리자 id
+login_pw = "" # 관리자 password 
+cha_name = "" #다운받고자 하는 차수명(정확해야 함)
 image_path = "images/"
 # download_path = image_path+"{:%Y%m%d%H%M%S}/".format(datetime.now())
 download_path = image_path+"20201030074931/"
