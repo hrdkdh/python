@@ -5,9 +5,9 @@ import urllib
 import requests
 import numpy as np
 import pandas as pd
+from pptx.util import Pt
 from shutil import copyfile
 from pptx import Presentation
-from pptx.util import Pt
 from datetime import datetime
 from bs4 import BeautifulSoup as bs
 
