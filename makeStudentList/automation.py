@@ -1,22 +1,36 @@
 import os
 import sys
 import cv2
-import requests
 import urllib
+import requests
 import numpy as np
-from bs4 import BeautifulSoup as bs
+import pandas as pd
 from shutil import copyfile
-from datetime import datetime
 from pptx import Presentation
+from pptx.util import Pt
+from datetime import datetime
+from bs4 import BeautifulSoup as bs
 
-login_id = "" # 관리자 id
-login_pw = "" # 관리자 password 
-cha_name = "" #다운받고자 하는 차수명(정확해야 함)
+login_id = "edu" # 관리자 id
+login_pw = "12345!" # 관리자 password 
+cha_name = "20-005차 포스코 취업아카데미(포항5차)" #다운받고자 하는 차수명(정확해야 함)
 image_path = "images/"
-# download_path = image_path+"{:%Y%m%d%H%M%S}/".format(datetime.now())
-download_path = image_path+"20201030074931/"
+download_path = image_path+"{:%Y%m%d%H%M%S}/".format(datetime.now())
 resized_path = download_path+"resized/"
 image_resize_size = [800, 600] #height, width / 이미지 비율은 4:3으로 고정
+
+def checkInit():
+    check = True
+    df = pd.read_clipboard()
+    if len(df) < 30:
+        printInitError()
+        check = False
+    return check
+
+def printInitError():
+    print("교육생 정보가 클립보드로 복사되지 않아 실행을 중단합니다.")
+    print("입과자 명부 엑셀 파일에서 데이터를 클립보드로 복사해 주세요.")
+    print("조, 출력순서, 성명, 휴대폰, 나이, 대학명, 학부전공, 졸업, 거주지, 숙소 정보가 복사되어야 합니다.")
 
 def makeDownloadDirectory(download_path):
     try:
@@ -85,7 +99,7 @@ def downloadStudentImages(login_id, login_pw, cha_name):
                 this_href = href.attrs["href"]
                 this_image = s.get(base_url+this_href[2:len(this_href)])
                 this_ext = this_image.headers["Content-Disposition"].split(".")[1]
-                this_image_name = href.parent.parent.findAll("td")[3].find("a").text.replace("/", "_")
+                this_image_name = href.parent.parent.findAll("td")[3].find("a").text.replace("/", "_")+"_"+href.parent.parent.findAll("td")[4].find("strong").text
                 open("./"+download_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
 
 def cropImages(download_path):
@@ -156,14 +170,58 @@ def cropImages(download_path):
 
 def makePPT(resized_path):
     print("교육생 명단을 PPT로 작성하는 중...")
+    df = pd.read_clipboard()
+    if len(df) < 1:
+        printInitError()
+        sys.exit()
+
     prs = Presentation("master.pptx")
     slide = prs.slides[0]
-    for shape in slide.shapes:
-        print(shape.placeholders)
+    for student in df.iloc:
+        # print(student["성명"]+" "+str(student["조"])+"-"+str(student["출력순서"]))
+        for shape in slide.shapes:
+            if shape.has_text_frame:
+                this_paragraph = shape.text_frame.paragraphs[0]
+                if str(student["조"]).strip() == this_paragraph.text.strip()[2:3] and str(student["출력순서"]).strip() == this_paragraph.text.strip()[4:5]:
+                    this_label = this_paragraph.text.strip()[0:2]
+                    if this_label == "사진":
+                        files = os.listdir("./"+resized_path)
+                        for f in files:
+                            if student["휴대폰"] in f:
+                                slide.shapes.add_picture("./"+resized_path+f, shape.left, shape.top, shape.width, shape.height)
+                                break
+                        this_paragraph.text = ""
+
+            elif shape.has_table:
+                for i in range(0, 7):
+                    cell = shape.table.rows[i].cells[0]
+                    this_table_paragraph = cell.text_frame.paragraphs[0]
+                    this_label = this_table_paragraph.text.strip()[0:2]
+                    if str(student["조"]).strip() == this_table_paragraph.text.strip()[2:3] and str(student["출력순서"]).strip() == this_table_paragraph.text.strip()[4:5]:
+                        if this_label == "이름":
+                            this_table_paragraph.text = student["성명"]
+                            this_table_paragraph.font.bold = True
+                        elif this_label == "나이":
+                            this_table_paragraph.text = str(student["나이"])
+                        elif this_label == "대학":
+                            this_table_paragraph.text = student["대학명"]
+                        elif this_label == "전공":
+                            this_table_paragraph.text = student["학부전공"]
+                        elif this_label == "지역":
+                            this_table_paragraph.text = student["거주지"]
+                        elif this_label == "전화":
+                            this_table_paragraph.text = student["휴대폰"]
+                        elif this_label == "숙소":
+                            this_table_paragraph.text = student["숙소"]
+                        this_table_paragraph.font.size = Pt(8)
+                    
+    prs.save("result.pptx")
 
 if __name__ == "__main__":
-    # makeDownloadDirectory(image_path)
-    # makeDownloadDirectory(download_path)
-    # downloadStudentImages(login_id, login_pw, cha_name)
-    # cropImages(download_path)
-    makePPT(resized_path)
+    initCheck = checkInit()
+    if initCheck:
+        makeDownloadDirectory(image_path)
+        makeDownloadDirectory(download_path)
+        downloadStudentImages(login_id, login_pw, cha_name)
+        cropImages(download_path)
+        makePPT(resized_path)
