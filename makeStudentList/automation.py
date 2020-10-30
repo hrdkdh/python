@@ -11,9 +11,9 @@ from pptx.util import Pt
 from datetime import datetime
 from bs4 import BeautifulSoup as bs
 
-login_id = "edu" # 관리자 id
-login_pw = "12345!" # 관리자 password 
-cha_name = "20-005차 포스코 취업아카데미(포항5차)" #다운받고자 하는 차수명(정확해야 함)
+login_id = "" # 관리자 id
+login_pw = "" # 관리자 password 
+cha_name = "" #다운받고자 하는 차수명(정확해야 함)
 image_path = "images/"
 download_path = image_path+"{:%Y%m%d%H%M%S}/".format(datetime.now())
 resized_path = download_path+"resized/"
