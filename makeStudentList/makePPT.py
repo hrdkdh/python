@@ -132,9 +132,9 @@ def cropImages(download_path):
                 else: #높이가 기준보다 적고, 너비도 기준보다 작은 경우 → 리사이즈 불필요
                     pass
 
-            if resize_ref is "width":
+            if resize_ref == "width":
                 resized=cv2.resize(src, dsize=(int(image_resize_size[1]), int(src.shape[0]*(image_resize_size[1]/src.shape[1]))), interpolation=cv2.INTER_AREA)
-            elif resize_ref is "height":
+            elif resize_ref == "height":
                 resized=cv2.resize(src, dsize=(int(src.shape[1]*(image_resize_size[0]/src.shape[0])), int(image_resize_size[0])), interpolation=cv2.INTER_AREA)
 
             #resized = faceRecognition(resized)
@@ -151,10 +151,10 @@ def cropImages(download_path):
                 crop_axis = "width"
             
             #잘라내야 할 높이 혹은 너비는?
-            if crop_axis is "height":
+            if crop_axis == "height":
                 crop_size = resized.shape[0] - height
                 resized = resized[0:height,:] #아래만 자른다
-            elif crop_axis is "width":
+            elif crop_axis == "width":
                 crop_size = int((resized.shape[1] - width)/2)
                 crop_size_left = crop_size
                 crop_size_right = resized.shape[1]-crop_size
