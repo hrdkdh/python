@@ -79,7 +79,7 @@ def faceRecognition(img):
     return img
 
 def downloadStudentImages(login_id, login_pw, cha_name):
-    print("youth.posco.com에서 이미지를 다운받는 중...")
+    print("youth.posco.com에서 이미지를 다운받는 중... 기다려 주세요(1~3분 소요).")
     base_url = "http://youth.posco.com/posco/_owner/"
     login_url = base_url+"index.php?act=login"
     login_data = {
@@ -123,8 +123,8 @@ def downloadStudentImages(login_id, login_pw, cha_name):
                     open("./"+id_image_download_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
                 if "통장" in href.get_text():
                     open("./"+account_image_download_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
-    makeZipFile(download_path, id_image_download_path, cha_name+"_신분증 사본.zip")
-    makeZipFile(download_path, account_image_download_path, cha_name+"통장 사본.zip")
+    makeZipFile(download_path, id_image_download_path, "신분증 사본_"+cha_name+".zip")
+    makeZipFile(download_path, account_image_download_path, "통장 사본_"+cha_name+".zip")
 
 def cropImages(download_path):
     print("이미지를 4:3 비율로 자르고 다듬는 중...")
@@ -236,7 +236,7 @@ def makePPT(pic_image_resized_path):
                                 this_table_paragraph.text = student["숙소"]
                             this_table_paragraph.font.size = Pt(8)
                         
-        prs.save(download_path+"교육생 명부"+cha_name+".pptx")
+        prs.save(download_path+"교육생 명부_"+cha_name+".pptx")
     else:
         printDfLoadError()
 
