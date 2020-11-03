@@ -15,17 +15,24 @@ from bs4 import BeautifulSoup as bs
 login_id = "" # 관리자 id
 login_pw = "" # 관리자 password 
 cha_name = input("명단으로 만들고자 하는 차수명(시스템에 등록된 차수명)을 정확히 입력해 주세요 : ").strip() #다운받고자 하는 차수명(정확해야 함)
-image_path = "images/"
-download_path = image_path+"{:%Y%m%d%H%M%S}/".format(datetime.now())
-resized_path = download_path+"pic_image_resized/"
-id_image_path = download_path+"id_images/"
-account_image_path = download_path+"account_images/"
+now_datetime = str(int(datetime.now().timestamp()))
+download_root_path = "results/"
+download_path = download_root_path+now_datetime+"/"
+download_path_for_rename = download_root_path+cha_name+"_"+now_datetime+"/"
+pic_image_orginal_path = download_path+"pic_image_orginal/"
+pic_image_resized_path = download_path+"pic_image_resized/"
+id_image_download_path = download_path+"id_images/"
+account_image_download_path = download_path+"account_images/"
 image_resize_size = [800, 600] #height, width / 이미지 비율은 4:3으로 고정
 
 def printDfLoadError():
+    print("                                                              ")
+    print("===================================================================================================")
     print("교육생 정보가 클립보드로 복사되지 않아 실행을 중단합니다.")
-    print("입과자 명부 엑셀 파일에서 데이터를 클립보드로 복사해 주세요.")
+    print("입과자 명부 엑셀 파일에서 데이터를 클립보드로 복사한 후 다시 시도해 주세요.")
     print("조, 출력순서, 성명, 휴대폰, 나이, 대학명, 학부전공, 졸업, 거주지, 숙소 정보가 복사되어야 합니다.")
+    print("===================================================================================================")
+    print("                                                              ")
 
 def makeDownloadDirectory(dir_arr):
     for dir_path in dir_arr:
@@ -45,8 +52,8 @@ def makeZipFile(zip_file_path, org_file_path, zip_file_name): #압축된 파일�
     this_zip.close()
 
 def faceRecognition(img):
-    model = "res10_300x300_ssd_iter_140000.caffemodel"
-    config = "deploy.prototxt"
+    model = "./face_recognition/res10_300x300_ssd_iter_140000.caffemodel"
+    config = "./face_recognition/deploy.prototxt"
     net = cv2.dnn.readNet(model, config)
 
     if net.empty():
@@ -111,13 +118,13 @@ def downloadStudentImages(login_id, login_pw, cha_name):
                 this_ext = this_image.headers["Content-Disposition"].split(".")[-1]
                 this_image_name = href.parent.parent.findAll("td")[3].find("a").text.replace("/", "_")+"_"+href.parent.parent.findAll("td")[4].find("strong").text
                 if "증명사진" in href.get_text():
-                    open("./"+download_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
+                    open("./"+pic_image_orginal_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
                 if "신분증" in href.get_text():
-                    open("./"+id_image_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
+                    open("./"+id_image_download_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
                 if "통장" in href.get_text():
-                    open("./"+account_image_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
-    makeZipFile(download_path, id_image_path, cha_name+"_신분증 사본.zip")
-    makeZipFile(download_path, account_image_path, cha_name+"통장 사본.zip")
+                    open("./"+account_image_download_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
+    makeZipFile(download_path, id_image_download_path, cha_name+"_신분증 사본.zip")
+    makeZipFile(download_path, account_image_download_path, cha_name+"통장 사본.zip")
 
 def cropImages(download_path):
     print("이미지를 4:3 비율로 자르고 다듬는 중...")
@@ -125,13 +132,13 @@ def cropImages(download_path):
         os.remove("./"+download_path+"temp")
     except:
         pass
-    files = os.listdir("./"+download_path)
+    files = os.listdir("./"+pic_image_orginal_path)
     for f in files:
         if len(f.split("."))<2: #폴더일 경우는 처리하지 않음
             continue
 
-        dst = "./"+download_path+"temp"
-        copyfile("./"+download_path+f, dst)
+        dst = "./"+pic_image_orginal_path+"temp"
+        copyfile("./"+pic_image_orginal_path+f, dst)
         src = cv2.imread(dst, cv2.IMREAD_COLOR)
         if src is not None:
             resized = src
@@ -180,61 +187,69 @@ def cropImages(download_path):
 
             # print("최종 너비 : {}".format(width)+", 최종 높이 : {}".format(height)+", 결과 너비 : {}".format(resized.shape[1])+", 결과 높이 : {}".format(resized.shape[0])+", 잘라내야 할 축 : "+crop_axis+", 잘라내야 할 사이즈 : "+str(crop_size))
 
-            cv2.imwrite(resized_path+"temp_resized"+"."+f.split(".")[1], resized)
-            os.rename("./"+resized_path+"temp_resized"+"."+f.split(".")[1], "./"+resized_path+f.split(".")[0]+"_"+str(resized.shape[1])+"x"+str(resized.shape[0])+"."+f.split(".")[1])
-        os.remove("./"+download_path+"temp")
+            cv2.imwrite(pic_image_resized_path+"temp_resized"+"."+f.split(".")[1], resized)
+            os.rename("./"+pic_image_resized_path+"temp_resized"+"."+f.split(".")[1], "./"+pic_image_resized_path+f.split(".")[0]+"_"+str(resized.shape[1])+"x"+str(resized.shape[0])+"."+f.split(".")[1])
+        os.remove("./"+pic_image_orginal_path+"temp")
 
-def makePPT(resized_path):
+def makePPT(pic_image_resized_path):
     print("교육생 명단을 PPT로 작성하는 중...")
     df = pd.read_clipboard()
-    if len(df) < 1:
+    if len(df) > 0:
+        post_file_name = str(len(df))
+        prs = Presentation("./ppt_master/master_"+post_file_name+".pptx")
+        slide = prs.slides[0]
+        for student in df.iloc:
+            # print(student["성명"]+" "+str(student["조"])+"-"+str(student["출력순서"]))
+            for shape in slide.shapes:
+                if shape.has_text_frame:
+                    this_paragraph = shape.text_frame.paragraphs[0]
+                    if str(student["조"]).strip() == this_paragraph.text.strip()[2:3] and str(student["출력순서"]).strip() == this_paragraph.text.strip()[4:5]:
+                        this_label = this_paragraph.text.strip()[0:2]
+                        if this_label == "사진":
+                            files = os.listdir("./"+pic_image_resized_path)
+                            for f in files:
+                                if student["휴대폰"] in f:
+                                    slide.shapes.add_picture("./"+pic_image_resized_path+f, shape.left, shape.top, shape.width, shape.height)
+                                    break
+                            this_paragraph.text = ""
+
+                elif shape.has_table:
+                    for i in range(0, 7):
+                        cell = shape.table.rows[i].cells[0]
+                        this_table_paragraph = cell.text_frame.paragraphs[0]
+                        this_label = this_table_paragraph.text.strip()[0:2]
+                        if str(student["조"]).strip() == this_table_paragraph.text.strip()[2:3] and str(student["출력순서"]).strip() == this_table_paragraph.text.strip()[4:5]:
+                            if this_label == "이름":
+                                this_table_paragraph.text = student["성명"]
+                                this_table_paragraph.font.bold = True
+                            elif this_label == "나이":
+                                this_table_paragraph.text = str(student["나이"])
+                            elif this_label == "대학":
+                                this_table_paragraph.text = student["대학명"]
+                            elif this_label == "전공":
+                                this_table_paragraph.text = student["학부전공"]
+                            elif this_label == "지역":
+                                this_table_paragraph.text = student["거주지"]
+                            elif this_label == "전화":
+                                this_table_paragraph.text = student["휴대폰"]
+                            elif this_label == "숙소":
+                                this_table_paragraph.text = student["숙소"]
+                            this_table_paragraph.font.size = Pt(8)
+                        
+        prs.save(download_path+"교육생 명부"+cha_name+".pptx")
+    else:
         printDfLoadError()
-        sys.exit()
 
-    prs = Presentation("master.pptx")
-    slide = prs.slides[0]
-    for student in df.iloc:
-        # print(student["성명"]+" "+str(student["조"])+"-"+str(student["출력순서"]))
-        for shape in slide.shapes:
-            if shape.has_text_frame:
-                this_paragraph = shape.text_frame.paragraphs[0]
-                if str(student["조"]).strip() == this_paragraph.text.strip()[2:3] and str(student["출력순서"]).strip() == this_paragraph.text.strip()[4:5]:
-                    this_label = this_paragraph.text.strip()[0:2]
-                    if this_label == "사진":
-                        files = os.listdir("./"+resized_path)
-                        for f in files:
-                            if student["휴대폰"] in f:
-                                slide.shapes.add_picture("./"+resized_path+f, shape.left, shape.top, shape.width, shape.height)
-                                break
-                        this_paragraph.text = ""
-
-            elif shape.has_table:
-                for i in range(0, 7):
-                    cell = shape.table.rows[i].cells[0]
-                    this_table_paragraph = cell.text_frame.paragraphs[0]
-                    this_label = this_table_paragraph.text.strip()[0:2]
-                    if str(student["조"]).strip() == this_table_paragraph.text.strip()[2:3] and str(student["출력순서"]).strip() == this_table_paragraph.text.strip()[4:5]:
-                        if this_label == "이름":
-                            this_table_paragraph.text = student["성명"]
-                            this_table_paragraph.font.bold = True
-                        elif this_label == "나이":
-                            this_table_paragraph.text = str(student["나이"])
-                        elif this_label == "대학":
-                            this_table_paragraph.text = student["대학명"]
-                        elif this_label == "전공":
-                            this_table_paragraph.text = student["학부전공"]
-                        elif this_label == "지역":
-                            this_table_paragraph.text = student["거주지"]
-                        elif this_label == "전화":
-                            this_table_paragraph.text = student["휴대폰"]
-                        elif this_label == "숙소":
-                            this_table_paragraph.text = student["숙소"]
-                        this_table_paragraph.font.size = Pt(8)
-                    
-    prs.save("result.pptx")
+def changeDownloadFolderName(download_path, download_path_for_rename):
+    success = True
+    try:
+        os.rename(download_path, download_path_for_rename)
+    except:
+        success = False
+    return success
 
 if __name__ == "__main__":
-    makeDownloadDirectory([image_path, download_path, resized_path, id_image_path, account_image_path])
+    makeDownloadDirectory([download_root_path, download_path, pic_image_orginal_path, pic_image_resized_path, id_image_download_path, account_image_download_path])
     downloadStudentImages(login_id, login_pw, cha_name)
     cropImages(download_path)
 
@@ -243,6 +258,19 @@ if __name__ == "__main__":
     print("교육생 정보가 담긴 데이터를 엑셀에서 복사한 후 엔터키를 눌러주세요.")
     print("조, 출력순서, 성명, 휴대폰, 나이, 대학명, 학부전공, 졸업, 거주지, 숙소 정보가 복사되어야 합니다.")
     print("===================================================================================================")
-    go_on_sign = input("(복사 후 엔터키 입력)")
+    go_on_sign = input("(복사완료 후 엔터키 입력)")
 
-    makePPT(resized_path)
+    makePPT(pic_image_resized_path)
+    try_change_folder_name = changeDownloadFolderName(download_path, download_path_for_rename)
+    if try_change_folder_name:
+        finally_folder_name = download_path_for_rename
+    else:
+        finally_folder_name = download_path
+
+    print("                                                              ")
+    print("===================================================================================================")
+    print("작업이 완료되었습니다.")
+    print("결과물은 아래 폴더에서 확인할 수 있습니다")
+    print("["+finally_folder_name+"]")
+    print("===================================================================================================")
+    print("                                                              ")    
