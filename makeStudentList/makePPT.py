@@ -16,7 +16,9 @@ login_pw = "" # 관리자 password
 cha_name = "" #다운받고자 하는 차수명(정확해야 함)
 image_path = "images/"
 download_path = image_path+"{:%Y%m%d%H%M%S}/".format(datetime.now())
-resized_path = download_path+"resized/"
+resized_path = download_path+"pic_image_resized/"
+id_image_path = download_path+"id_images/"
+account_image_path = download_path+"account_images/"
 image_resize_size = [800, 600] #height, width / 이미지 비율은 4:3으로 고정
 
 def checkInit():
@@ -32,14 +34,15 @@ def printInitError():
     print("입과자 명부 엑셀 파일에서 데이터를 클립보드로 복사해 주세요.")
     print("조, 출력순서, 성명, 휴대폰, 나이, 대학명, 학부전공, 졸업, 거주지, 숙소 정보가 복사되어야 합니다.")
 
-def makeDownloadDirectory(download_path):
-    try:
-        if not(os.path.isdir("./"+download_path)):
-            os.makedirs(os.path.join("./"+download_path))
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            print("이미지 다운로드 폴더 생성에 실패하였습니다.")
-            raise
+def makeDownloadDirectory(dir_arr):
+    for dir_path in dir_arr:
+        try:
+            if not(os.path.isdir("./"+dir_path)):
+                os.makedirs(os.path.join("./"+dir_path))
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                print("이미지 다운로드 폴더 생성에 실패하였습니다.")
+                raise
 
 def faceRecognition(img):
     model = "res10_300x300_ssd_iter_140000.caffemodel"
@@ -95,16 +98,20 @@ def downloadStudentImages(login_id, login_pw, cha_name):
         image_soup = bs(student_list_data.text, "html.parser")
         image_links = image_soup.select("a")
         for href in image_links:
-            if href.get_text() is not None and "증명사진" in href.get_text():
+            if href.get_text() is not None and ("증명사진" in href.get_text() or "신분증" in href.get_text() or "통장" in href.get_text()):
                 this_href = href.attrs["href"]
                 this_image = s.get(base_url+this_href[2:len(this_href)])
-                this_ext = this_image.headers["Content-Disposition"].split(".")[1]
+                this_ext = this_image.headers["Content-Disposition"].split(".")[-1]
                 this_image_name = href.parent.parent.findAll("td")[3].find("a").text.replace("/", "_")+"_"+href.parent.parent.findAll("td")[4].find("strong").text
-                open("./"+download_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
+                if "증명사진" in href.get_text():
+                    open("./"+download_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
+                if "신분증" in href.get_text():
+                    open("./"+id_image_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
+                if "통장" in href.get_text():
+                    open("./"+account_image_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
 
 def cropImages(download_path):
     print("이미지를 4:3 비율로 자르고 다듬는 중...")
-    makeDownloadDirectory(resized_path)
     try:
         os.remove("./"+download_path+"temp")
     except:
@@ -220,8 +227,7 @@ def makePPT(resized_path):
 if __name__ == "__main__":
     initCheck = checkInit()
     if initCheck:
-        makeDownloadDirectory(image_path)
-        makeDownloadDirectory(download_path)
+        makeDownloadDirectory([image_path, download_path, resized_path, id_image_path, account_image_path])
         downloadStudentImages(login_id, login_pw, cha_name)
         cropImages(download_path)
         makePPT(resized_path)
