@@ -2,6 +2,7 @@ import os
 import sys
 import cv2
 import urllib
+import zipfile
 import requests
 import numpy as np
 import pandas as pd
@@ -13,7 +14,7 @@ from bs4 import BeautifulSoup as bs
 
 login_id = "" # 관리자 id
 login_pw = "" # 관리자 password 
-cha_name = "" #다운받고자 하는 차수명(정확해야 함)
+cha_name = input("명단으로 만들고자 하는 차수명(시스템에 등록된 차수명)을 정확히 입력해 주세요 : ").strip() #다운받고자 하는 차수명(정확해야 함)
 image_path = "images/"
 download_path = image_path+"{:%Y%m%d%H%M%S}/".format(datetime.now())
 resized_path = download_path+"pic_image_resized/"
@@ -21,15 +22,7 @@ id_image_path = download_path+"id_images/"
 account_image_path = download_path+"account_images/"
 image_resize_size = [800, 600] #height, width / 이미지 비율은 4:3으로 고정
 
-def checkInit():
-    check = True
-    df = pd.read_clipboard()
-    if len(df) < 30:
-        printInitError()
-        check = False
-    return check
-
-def printInitError():
+def printDfLoadError():
     print("교육생 정보가 클립보드로 복사되지 않아 실행을 중단합니다.")
     print("입과자 명부 엑셀 파일에서 데이터를 클립보드로 복사해 주세요.")
     print("조, 출력순서, 성명, 휴대폰, 나이, 대학명, 학부전공, 졸업, 거주지, 숙소 정보가 복사되어야 합니다.")
@@ -43,6 +36,13 @@ def makeDownloadDirectory(dir_arr):
             if e.errno != errno.EEXIST:
                 print("이미지 다운로드 폴더 생성에 실패하였습니다.")
                 raise
+
+def makeZipFile(zip_file_path, org_file_path, zip_file_name): #압축된 파일이 저장될 폴더 / 압축할 파일이 있는 폴더 / 압축된 파일명
+    this_zip = zipfile.ZipFile(zip_file_path+zip_file_name, "w")
+    for folder, subfolders, files in os.walk(org_file_path):
+        for f in files:
+            this_zip.write(os.path.join(folder, f), os.path.relpath(os.path.join(folder,f), org_file_path), compress_type = zipfile.ZIP_DEFLATED)
+    this_zip.close()
 
 def faceRecognition(img):
     model = "res10_300x300_ssd_iter_140000.caffemodel"
@@ -89,11 +89,18 @@ def downloadStudentImages(login_id, login_pw, cha_name):
         soup = bs(cha_list_data.text, "html.parser")
         table = soup.select("table")
         strongs = table[1].select("strong")
+
+        student_page_url = ""
         for strong in strongs:
             if "격 : " in strong.get_text() and "합" in strong.get_text()[:1]:
                 href = strong.parent.attrs["href"]
                 student_page_url=href[2:len(href)]
                 break
+        if student_page_url == "":
+            print("차수명이 잘못되어 이미지 다운로드에 실패하였습니다.")
+            print("차수명을 정확히 입력한 후 다시 시도해 주세요.")
+            sys.exit()
+
         student_list_data = s.get(base_url+student_page_url)
         image_soup = bs(student_list_data.text, "html.parser")
         image_links = image_soup.select("a")
@@ -109,6 +116,8 @@ def downloadStudentImages(login_id, login_pw, cha_name):
                     open("./"+id_image_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
                 if "통장" in href.get_text():
                     open("./"+account_image_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
+    makeZipFile(download_path, id_image_path, cha_name+"_신분증 사본.zip")
+    makeZipFile(download_path, account_image_path, cha_name+"통장 사본.zip")
 
 def cropImages(download_path):
     print("이미지를 4:3 비율로 자르고 다듬는 중...")
@@ -179,7 +188,7 @@ def makePPT(resized_path):
     print("교육생 명단을 PPT로 작성하는 중...")
     df = pd.read_clipboard()
     if len(df) < 1:
-        printInitError()
+        printDfLoadError()
         sys.exit()
 
     prs = Presentation("master.pptx")
@@ -225,9 +234,15 @@ def makePPT(resized_path):
     prs.save("result.pptx")
 
 if __name__ == "__main__":
-    initCheck = checkInit()
-    if initCheck:
-        makeDownloadDirectory([image_path, download_path, resized_path, id_image_path, account_image_path])
-        downloadStudentImages(login_id, login_pw, cha_name)
-        cropImages(download_path)
-        makePPT(resized_path)
+    makeDownloadDirectory([image_path, download_path, resized_path, id_image_path, account_image_path])
+    downloadStudentImages(login_id, login_pw, cha_name)
+    cropImages(download_path)
+
+    print("                                                              ")
+    print("===================================================================================================")
+    print("교육생 정보가 담긴 데이터를 엑셀에서 복사한 후 엔터키를 눌러주세요.")
+    print("조, 출력순서, 성명, 휴대폰, 나이, 대학명, 학부전공, 졸업, 거주지, 숙소 정보가 복사되어야 합니다.")
+    print("===================================================================================================")
+    go_on_sign = input("(복사 후 엔터키 입력)")
+
+    makePPT(resized_path)
