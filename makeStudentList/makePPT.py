@@ -241,12 +241,12 @@ def makePPT(pic_image_resized_path):
         printDfLoadError()
 
 def changeDownloadFolderName(download_path, download_path_for_rename):
-    success = True
+    finally_folder_name = download_path_for_rename
     try:
         os.rename(download_path, download_path_for_rename)
     except:
-        success = False
-    return success
+        finally_folder_name = download_path
+    return finally_folder_name
 
 if __name__ == "__main__":
     makeDownloadDirectory([download_root_path, download_path, pic_image_orginal_path, pic_image_resized_path, id_image_download_path, account_image_download_path])
@@ -261,12 +261,8 @@ if __name__ == "__main__":
     go_on_sign = input("(복사완료 후 엔터키 입력)")
 
     makePPT(pic_image_resized_path)
-    try_change_folder_name = changeDownloadFolderName(download_path, download_path_for_rename)
-    if try_change_folder_name:
-        finally_folder_name = download_path_for_rename
-    else:
-        finally_folder_name = download_path
-
+    finally_folder_name = changeDownloadFolderName(download_path, download_path_for_rename)
+    
     print("                                                              ")
     print("===================================================================================================")
     print("작업이 완료되었습니다.")
