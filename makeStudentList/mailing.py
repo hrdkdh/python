@@ -13,7 +13,6 @@ def initDriver():
     driver = webdriver.Ie("IEDriverServer")
     return driver
 
-#my_id : #EP접속 아이디, my_pw : #EP접속 비번
 def connectEpMail(driver, my_id, my_pw):
     url = "http://swpsso.posco.net/idms/U61/jsp/login/login.jsp"
     driver.get(url)
@@ -81,7 +80,6 @@ def openMailWindow(driver):
         print("진행 중 오류가 발생하였습니다. 재시도해 주십시오.")
         sys.exit()
 
-#attatch_file_name : 첨부할 파일명. 루트 폴더까지 모두 있어야 함.
 def attachFiles(driver, attatch_file_name):
     for i in range(-1, len(driver.window_handles)):
         success_check = False
