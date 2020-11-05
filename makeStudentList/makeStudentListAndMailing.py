@@ -17,8 +17,6 @@ from bs4 import BeautifulSoup as bs
 #사이트 접속을 위한 로그인 정보
 login_id = "" #취창업캠프 관리자 ID
 login_pw = "" #취창업캠프 관리자 PSWD
-ep_id = "" #EP ID
-ep_pw = "" #EP PSWD
 
 #폴더 생성 및 PPT 생성을 위한 정보
 cha_name = input("명단으로 만들고자 하는 차수명(시스템에 등록된 차수명)을 정확히 입력해 주세요 : ").strip() #다운받고자 하는 차수명(정확해야 함)
@@ -39,6 +37,7 @@ mail_content = "안녕하세요, 산업혁신교육그룹입니다.\n\n취업캠
 mail_reciever = "hoan3532@poscohrd.com" #메일 수신자
 
 def checkReady():
+    global login_id, login_pw
     print("===================================================================================================")
     print("코드 실행을 위한 준비사항을 체크합니다...")    
     win2 = gw.getWindowsWithTitle("Internet Explorer")
@@ -48,9 +47,9 @@ def checkReady():
         print("!!!EP에 로그인되어 있을 경우 반드시 로그아웃한 후 창을 닫아 주세요!!!")
         sys.exit()
 
-    if login_id =="" or login_pw =="" or ep_id =="" or ep_pw =="":
-        print("오류 : 관리자사이트/EP 접속을 위한 아이디/비번 정보가 입력되지 않았습니다.")
-        print("아이디/비번 정보를 확인한 다음 재시도해 주세요")
+    if login_id =="" or login_pw =="":
+        login_id = input("취창업캠프 관리자 아이디를 입력해 주세요 : ") #취창업캠프 관리자 ID
+        login_pw = input("취창업캠프 관리자 패스워드를 입력해 주세요 : ") #취창업캠프 관리자 PSWD
 
     print("체크완료")
     print("===================================================================================================")
@@ -80,33 +79,6 @@ def makeZipFile(zip_file_path, org_file_path, zip_file_name): #압축된 파일�
         for f in files:
             this_zip.write(os.path.join(folder, f), os.path.relpath(os.path.join(folder,f), org_file_path), compress_type = zipfile.ZIP_DEFLATED)
     this_zip.close()
-
-def faceRecognition(img):
-    model = "./face_recognition/res10_300x300_ssd_iter_140000.caffemodel"
-    config = "./face_recognition/deploy.prototxt"
-    net = cv2.dnn.readNet(model, config)
-
-    if net.empty():
-        print("얼굴인식에 필요한 소스파일이 없습니다.")
-    else:
-        blob = cv2.dnn.blobFromImage(img, 1, (300, 300), (104, 177, 123))
-        net.setInput(blob)
-        out = net.forward()
-
-        detect = out[0, 0, :, :]
-        (h, w) = img.shape[:2]
-
-        #200개 중 가장 확률 높은 하나만 출력 (i=0)
-        # for i in range(detect.shape[0]):
-        confidence = detect[0, 2]
-        x1 = int(detect[0, 3] * w)
-        y1 = int(detect[0, 4] * h)
-        x2 = int(detect[0, 5] * w)
-        y2 = int(detect[0, 6] * h)
-
-        cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0))
-
-    return img
 
 def downloadStudentImages():
     print("youth.posco.com에서 이미지를 다운받는 중... 기다려 주세요(1~3분 소요).")
@@ -282,16 +254,26 @@ def sendEmail():
     print("===================================================================================================")
     print("신분증/통장 사본 발송을 위한 메일 작성을 시작합니다.")
 
-    driver = mailing.initDriver()
-    mailing.connectEpMail(driver, ep_id, ep_pw)
-    mailing.openMailWindow(driver)
-    mailing.attachFiles(driver, os.getcwd()+"\\"+finally_folder_name.replace("/", "\\")+"신분증 사본_"+cha_name+".zip")
-    mailing.attachFiles(driver, os.getcwd()+"\\"+finally_folder_name.replace("/", "\\")+"통장 사본_"+cha_name+".zip")
-    mailing.writeMailContents(driver, mail_reciever, mail_subject, mail_content)
+    ep_id = input("EP 아이디를 입력하세요 : ") #EP ID
+    ep_pw = input("EP 비밀번호를 입력하세요 : ") #EP PSWD
 
-    print("메일 작성을 완료하였습니다.")
-    print("===================================================================================================")
-    print("                                                              ")        
+    if ep_id != "" and ep_pw != "":
+        driver = mailing.initDriver()
+        mailing.connectEpMail(driver, ep_id, ep_pw)
+        mailing.openMailWindow(driver)
+        mailing.attachFiles(driver, os.getcwd()+"\\"+finally_folder_name.replace("/", "\\")+"신분증 사본_"+cha_name+".zip")
+        mailing.attachFiles(driver, os.getcwd()+"\\"+finally_folder_name.replace("/", "\\")+"통장 사본_"+cha_name+".zip")
+        mailing.writeMailContents(driver, mail_reciever, mail_subject, mail_content)
+
+        print("메일 작성을 완료하였습니다.")
+        print("===================================================================================================")
+        print("                                                              ")        
+
+    else:
+        print("EP아이디와 비밀번호를 입력해 주십시오.")
+        print("===================================================================================================")
+        print("                                                              ")
+        sendEmail()
 
 def changeDownloadFolderName():
     global finally_folder_name
