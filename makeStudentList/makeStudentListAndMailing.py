@@ -3,17 +3,24 @@ import sys
 import cv2
 import urllib
 import zipfile
+import mailing
 import requests
 import numpy as np
 import pandas as pd
+import pygetwindow as gw
 from pptx.util import Pt
 from shutil import copyfile
 from pptx import Presentation
 from datetime import datetime
 from bs4 import BeautifulSoup as bs
 
-login_id = "" # 관리자 id
-login_pw = "" # 관리자 password 
+#사이트 접속을 위한 로그인 정보
+login_id = "" #취창업캠프 관리자 ID
+login_pw = "" #취창업캠프 관리자 PSWD
+ep_id = "" #EP ID
+ep_pw = "" #EP PSWD
+
+#폴더 생성 및 PPT 생성을 위한 정보
 cha_name = input("명단으로 만들고자 하는 차수명(시스템에 등록된 차수명)을 정확히 입력해 주세요 : ").strip() #다운받고자 하는 차수명(정확해야 함)
 now_datetime = str(int(datetime.now().timestamp()))
 download_root_path = "results/"
@@ -24,13 +31,36 @@ pic_image_resized_path = download_path+"pic_image_resized/"
 id_image_download_path = download_path+"id_images/"
 account_image_download_path = download_path+"account_images/"
 image_resize_size = [800, 600] #height, width / 이미지 비율은 4:3으로 고정
+finally_folder_name = download_path
+
+#메일발송을 위한 정보
+mail_subject = "취업캠프 교육생 입금정보 등록을 요청드립니다." #메일 제목
+mail_content = "안녕하세요, 산업혁신교육그룹입니다.\n\n취업캠프 교육생 입금을 위한 정보를\n첨부와 같이 송부드리오니 반영 부탁드리겠습니다.\n\n감사합니다.\n\n※본 메일은 자동화된 코드에 의해 발송되었습니다.\n\n" #메일 내용
+mail_reciever = "hoan3532@poscohrd.com" #메일 수신자
+
+def checkReady():
+    print("===================================================================================================")
+    print("코드 실행을 위한 준비사항을 체크합니다...")    
+    win2 = gw.getWindowsWithTitle("Internet Explorer")
+    if len(win2)>0:
+        print("오류 : 인터넷 익스플로어창이 열려있어 진행할 수 없습니다")
+        print("열려있는 인터넷 익스플로어창을 모두 닫은 다음 재시도해 주세요")
+        print("!!!EP에 로그인되어 있을 경우 반드시 로그아웃한 후 창을 닫아 주세요!!!")
+        sys.exit()
+
+    if login_id =="" or login_pw =="" or ep_id =="" or ep_pw =="":
+        print("오류 : 관리자사이트/EP 접속을 위한 아이디/비번 정보가 입력되지 않았습니다.")
+        print("아이디/비번 정보를 확인한 다음 재시도해 주세요")
+
+    print("체크완료")
+    print("===================================================================================================")
 
 def printDfLoadError():
     print("                                                              ")
     print("===================================================================================================")
-    print("교육생 정보가 클립보드로 복사되지 않아 실행을 중단합니다.")
-    print("입과자 명부 엑셀 파일에서 데이터를 클립보드로 복사한 후 다시 시도해 주세요.")
-    print("조, 출력순서, 성명, 휴대폰, 나이, 대학명, 학부전공, 졸업, 거주지, 숙소 정보가 복사되어야 합니다.")
+    print("교육생 정보가 클립보드로 복사되지 않아 명단 작성은 스킵합니다.")
+    print("(조, 출력순서, 성명, 휴대폰, 나이, 대학명, 학부전공, 졸업, 거주지, 숙소 정보가 복사되어야 합니다)")
+    print("명단 작성을 완료하려면 코드를 다시 실행해 주세요.")
     print("===================================================================================================")
     print("                                                              ")
 
@@ -78,7 +108,7 @@ def faceRecognition(img):
 
     return img
 
-def downloadStudentImages(login_id, login_pw, cha_name):
+def downloadStudentImages():
     print("youth.posco.com에서 이미지를 다운받는 중... 기다려 주세요(1~3분 소요).")
     base_url = "http://youth.posco.com/posco/_owner/"
     login_url = base_url+"index.php?act=login"
@@ -126,7 +156,7 @@ def downloadStudentImages(login_id, login_pw, cha_name):
     makeZipFile(download_path, id_image_download_path, "신분증 사본_"+cha_name+".zip")
     makeZipFile(download_path, account_image_download_path, "통장 사본_"+cha_name+".zip")
 
-def cropImages(download_path):
+def cropImages():
     print("이미지를 4:3 비율로 자르고 다듬는 중...")
     try:
         os.remove("./"+download_path+"temp")
@@ -191,7 +221,13 @@ def cropImages(download_path):
             os.rename("./"+pic_image_resized_path+"temp_resized"+"."+f.split(".")[1], "./"+pic_image_resized_path+f.split(".")[0]+"_"+str(resized.shape[1])+"x"+str(resized.shape[0])+"."+f.split(".")[1])
         os.remove("./"+pic_image_orginal_path+"temp")
 
-def makePPT(pic_image_resized_path):
+def makePPT():
+    print("                                                              ")
+    print("===================================================================================================")
+    print("교육생 정보가 담긴 데이터를 엑셀에서 복사한 후 엔터키를 눌러주세요.")
+    print("조, 출력순서, 성명, 휴대폰, 나이, 대학명, 학부전공, 졸업, 거주지, 숙소 정보가 복사되어야 합니다.")
+    print("===================================================================================================")
+    go_on_sign = input("(복사완료 후 엔터키 입력)")    
     print("교육생 명단을 PPT로 작성하는 중...")
     df = pd.read_clipboard()
     if len(df) > 0:
@@ -237,32 +273,43 @@ def makePPT(pic_image_resized_path):
                             this_table_paragraph.font.size = Pt(8)
                         
         prs.save(download_path+"교육생 명부_"+cha_name+".pptx")
+        print("교육생 명단 작성완료")
     else:
         printDfLoadError()
 
-def changeDownloadFolderName(download_path, download_path_for_rename):
+def sendEmail():
+    print("                                                              ")
+    print("===================================================================================================")
+    print("신분증/통장 사본 발송을 위한 메일 작성을 시작합니다.")
+
+    driver = mailing.initDriver()
+    mailing.connectEpMail(driver, ep_id, ep_pw)
+    mailing.openMailWindow(driver)
+    mailing.attachFiles(driver, os.getcwd()+"\\"+finally_folder_name.replace("/", "\\")+"신분증 사본_"+cha_name+".zip")
+    mailing.attachFiles(driver, os.getcwd()+"\\"+finally_folder_name.replace("/", "\\")+"통장 사본_"+cha_name+".zip")
+    mailing.writeMailContents(driver, mail_reciever, mail_subject, mail_content)
+
+    print("메일 작성을 완료하였습니다.")
+    print("===================================================================================================")
+    print("                                                              ")        
+
+def changeDownloadFolderName():
+    global finally_folder_name
     finally_folder_name = download_path_for_rename
     try:
         os.rename(download_path, download_path_for_rename)
     except:
         finally_folder_name = download_path
-    return finally_folder_name
 
 if __name__ == "__main__":
+    checkReady()
     makeDownloadDirectory([download_root_path, download_path, pic_image_orginal_path, pic_image_resized_path, id_image_download_path, account_image_download_path])
-    downloadStudentImages(login_id, login_pw, cha_name)
-    cropImages(download_path)
+    downloadStudentImages()
+    cropImages()
+    makePPT()
+    changeDownloadFolderName()
+    sendEmail()
 
-    print("                                                              ")
-    print("===================================================================================================")
-    print("교육생 정보가 담긴 데이터를 엑셀에서 복사한 후 엔터키를 눌러주세요.")
-    print("조, 출력순서, 성명, 휴대폰, 나이, 대학명, 학부전공, 졸업, 거주지, 숙소 정보가 복사되어야 합니다.")
-    print("===================================================================================================")
-    go_on_sign = input("(복사완료 후 엔터키 입력)")
-
-    makePPT(pic_image_resized_path)
-    finally_folder_name = changeDownloadFolderName(download_path, download_path_for_rename)
-    
     print("                                                              ")
     print("===================================================================================================")
     print("작업이 완료되었습니다.")
