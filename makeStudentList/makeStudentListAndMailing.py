@@ -122,7 +122,11 @@ def downloadStudentImages():
             if href.get_text() is not None and ("증명사진" in href.get_text() or "신분증" in href.get_text() or "통장" in href.get_text()):
                 this_href = href.attrs["href"]
                 this_image = s.get(base_url+this_href[2:len(this_href)])
-                this_ext = this_image.headers["Content-Disposition"].split(".")[-1]
+                try:
+                    this_ext = this_image.headers["Content-Disposition"].split(".")[-1]
+                except:
+                    print("["+href.parent.parent.findAll("td")[3].find("a").text.replace("/", "_")+"]님의 이미지 파일 확장자가 없어 JPG로 대체되었습니다. 추후 확인하기 바랍니다.")
+                    this_ext = "jpg"
                 this_image_name = href.parent.parent.findAll("td")[3].find("a").text.replace("/", "_")+"_"+href.parent.parent.findAll("td")[4].find("strong").text
                 if "증명사진" in href.get_text():
                     open("./"+pic_image_orginal_path+this_image_name+"."+this_ext, "wb").write(this_image.content)
@@ -208,7 +212,7 @@ def makePPT():
         go_on_sign2 = input("(복사완료 후 엔터키 입력)")    
         print("교육생 명단을 PPT로 작성하는 중...")
         df = pd.read_clipboard()
-        if len(df) > 0 and df.iloc[0]["성명"] is not None:
+        if len(df) > 0 and "성명" in df.columns:
             post_file_name = str(len(df))
             prs = Presentation("./ppt_master/master_"+post_file_name+".pptx")
             slide = prs.slides[0]
@@ -305,3 +309,4 @@ if __name__ == "__main__":
     print("결과물은 아래 폴더에서 확인할 수 있습니다")
     print("["+finally_folder_name+"]")
     print("===================================================================================================")
+    sleep(600) #창이 닫히지 않도록 10분간 대기
