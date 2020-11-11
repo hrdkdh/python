@@ -1,3 +1,4 @@
+import os
 import clipboard
 import pyautogui as pag
 import win32com.client as win32
@@ -7,6 +8,39 @@ import sys
 from time import sleep
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+
+def sendEmail(downloaded_folder_name, cha_name):
+    check = checkReady()
+    if check is True:
+        ep_id = input("EP 아이디를 입력하세요 : ") #EP ID
+        ep_pw = input("EP 비밀번호를 입력하세요 : ") #EP PSWD
+        #메일발송을 위한 정보
+        mail_subject = "취업캠프 교육생 입금정보 등록을 요청드립니다." #메일 제목
+        mail_content = "안녕하세요, 산업혁신교육그룹입니다.\n\n취업캠프 교육생 입금을 위한 정보를\n첨부와 같이 송부드리오니 반영 부탁드리겠습니다.\n\n감사합니다.\n\n※본 메일은 자동화된 코드에 의해 발송되었습니다.\n\n" #메일 내용
+        mail_reciever = "hoan3532@poscohrd.com" #메일 수신자    
+        if ep_id != "" and ep_pw != "":
+            driver = initDriver()
+            connectEpMail(driver, ep_id, ep_pw)
+            openMailWindow(driver)
+            attachFiles(driver, os.getcwd()+"\\"+downloaded_folder_name.replace("/", "\\")+"신분증 사본_"+cha_name+".zip")
+            attachFiles(driver, os.getcwd()+"\\"+downloaded_folder_name.replace("/", "\\")+"통장 사본_"+cha_name+".zip")
+            writeMailContents(driver, mail_reciever, mail_subject, mail_content)
+            print("메일 작성을 완료하였습니다.")
+        else:
+            print("EP아이디와 비밀번호를 입력해 주십시오.")
+            sendEmail()
+    else:
+        sleep(3)
+
+def checkReady():
+    success = True
+    win2 = gw.getWindowsWithTitle("Internet Explorer")
+    if len(win2)>0:
+        print("오류 : 인터넷 익스플로어창이 열려있어 진행할 수 없습니다")
+        print("열려있는 인터넷 익스플로어창을 모두 닫은 다음 재시도해 주세요")
+        print("!!!EP에 로그인되어 있을 경우 반드시 로그아웃한 후 창을 닫아 주세요!!!")
+        success = False
+    return success
 
 def initDriver():
     #드라이버 인스턴스 생성
@@ -162,6 +196,6 @@ def writeMailContents(driver, mail_reciever_address, mail_subject, mail_content)
     sleep(3)
     alert = driver.switch_to.alert
     alert.accept()
-    print("파일 업로드를 위해 30초간 대기중...")
-    sleep(30) #파일 업로드를 위해 30초간 대기
+    print("파일 업로드를 위해 60초간 대기중...")
+    sleep(60) #파일 업로드를 위해 대기
     print("메일 발송완료")
