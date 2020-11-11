@@ -1,3 +1,4 @@
+import math
 import random
 import pandas as pd
 from time import sleep
@@ -50,8 +51,34 @@ def splitGroup():
     #     print(round(age_averages_by_group.iloc[i]["나이"]))
 
     #step2 : 거주지역별로 균등배분
-    count_by_area = pd.pivot_table(df, index = ["거주지(시)"], values="성명", aggfunc="count") #거주지별 총인원
+    count_by_area = pd.pivot_table(df, index = ["거주지(시)"], values="성명", aggfunc="count").to_dict() #거주지별 총인원
     group_count_by_area = pd.pivot_table(df, index = ["조"], values="성명", columns="거주지(시)", aggfunc="count") #조(행) 거주지(열) 매트릭스
+    for key, _ in count_by_area["성명"].items(): #거주지별로 loop. key는 거주지, _는 거주지별 총 인원수(value)
+        this_area_one_group = []
+        this_area_over_group = []
+        this_area_zero_group = []
+        for key_by_group, value in group_count_by_area[key].items(): #각 거주지별로 조에 배당된 수를 체크. key_by_group는 조, value는 배당된 수
+            if value == 1: #1로 배분된 조 배열에 저장
+                this_area_one_group.append(key_by_group)
+            if value > 1: #2 이상으로 배분(x)된 조 배열에 저장
+                this_area_over_group.append(key_by_group)
+            elif math.isnan(value): #0으로 배분된 조 배열에 저장
+                this_area_zero_group.append(key_by_group)
+        if len(this_area_over_group) > 0: #2 이상으로 배분(x)된 조가 있다면
+            if len(this_area_zero_group) > 0: #0으로 배당된 조를 찾는다
+                #해당 조로 이동하고, 이동한 만큼 해당 조의 1명을 현재 조로 옮겨온다
+                pass
+            else: #0으로 배당된 조가 없다면 x와 2차이 이상 나는 곳을 찾는다
+                pass
+        else: #x와 2차이 이상 나는 곳이 없다면 그대로 종료
+            pass
+        # print(this_area_one_group)
+        # print(this_area_over_group)
+        # print(this_area_zero_group)
+        break
+    
+    
+    
     print(count_by_area)
     print(group_count_by_area)
     exit()
