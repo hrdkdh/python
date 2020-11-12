@@ -1,5 +1,5 @@
 import sys
-import mailing
+# import mailing
 import makeList
 import traceback
 import groupSplit
@@ -40,7 +40,7 @@ def selectFunc():
         elif func == "2":
             if download_complete is True:
                 check = input("이미 다운로드를 받았습니다. 다시 다운로드 받으시려면 Y를, 앞으로 돌아가려면 N을 입력한 후 엔터키를 눌러주세요.")
-            if download_complete is False or (check is "Y" or check is "y"):
+            if download_complete is False or (check == "Y" or check == "y"):
                 print("교육생 이미지 일괄 다운로드를 실행합니다...(증명사진/신분증사본/통장사본)")
                 download_complete, downloaded_folder_name, pic_image_resized_path = downloadImages.downloadStudentImages(cha_name)
                 print("다음 폴더에 이미지를 다운로드 받았습니다 : "+downloaded_folder_name)
