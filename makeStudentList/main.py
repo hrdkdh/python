@@ -1,6 +1,7 @@
 import sys
 import mailing
 import makeList
+import traceback
 import groupSplit
 import downloadImages
 from time import sleep
@@ -17,7 +18,7 @@ def selectFunc():
     print("차수명 : " + cha_name)
     print("===================================================================================================") 
     print("1 : 교육생 자동 조편성")
-    print("2 : 교육생 이미지 일괄 다운로드(증명사진/신분증사본/통장사본)")
+    print("2 : 교육생 이미지 일괄 다운로드(증명사진/신분증사본/통장사본/자기소개서)")
     print("3 : 교육생 입금정보 등록메일 자동발송(신분증사본/통장사본)")
     print("4 : 교육생 PPT명단 작성")
     print("5 : 교육생 명찰 제작")
@@ -33,7 +34,7 @@ def selectFunc():
     else:
         if func == "1":
             print("교육생 자동 조편성을 실행합니다...")
-            groupSplit.splitGroup()
+            groupSplit.splitGroup(cha_name)
             sleep(2)
             selectFunc()
         elif func == "2":
@@ -60,7 +61,7 @@ def selectFunc():
         elif func == "4":
             if download_complete is True:
                 print("교육생 PPT명단 작성을 실행합니다...")
-                makeList.makePPT(downloaded_folder_name, pic_image_resized_path, cha_name)
+                makeList.makePPT(pic_image_resized_path, cha_name)
                 sleep(2)
                 selectFunc()
             else:
@@ -76,4 +77,10 @@ def selectFunc():
             sys.exit()
 
 if __name__ == "__main__":
-    selectFunc()
+    try:
+        selectFunc()
+    except BaseException:
+        print(sys.exc_info()[0])
+        print(traceback.format_exc())
+        print("종료하려면 아무키나 누르세요.")
+        input()

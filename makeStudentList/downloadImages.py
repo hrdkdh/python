@@ -93,7 +93,7 @@ def downloadStudentImages(cha_name):
     makeZipFile(download_path, account_image_download_path, "통장 사본_"+cha_name+".zip")
     makeZipFile(download_path, introduction_download_path, "자기소개서 모음_"+cha_name+".zip")
     cropImages()
-    downloaded_folder_name = changeDownloadFolderName()
+    downloaded_folder_name, pic_image_resized_path = changeDownloadFolderName()
     print("이미지 다운로드를 완료하였습니다.")
 
     return True, downloaded_folder_name, pic_image_resized_path
@@ -103,7 +103,7 @@ def makeDownloadDirectory(cha_name):
     
     #폴더 생성 및 PPT 생성을 위한 정보
     now_datetime = str(int(datetime.now().timestamp()))
-    download_root_path = "results/"
+    download_root_path = "results/downloaded_images/"
     download_path = download_root_path+now_datetime+"/"
     download_path_for_rename = download_root_path+cha_name+"_"+now_datetime+"/"
     pic_image_orginal_path = download_path+"pic_image_orginal/"
@@ -196,8 +196,10 @@ def cropImages():
 
 def changeDownloadFolderName():
     downloaded_folder_name = download_path_for_rename
+    pic_image_resized_path = download_path_for_rename+"pic_image_resized/"
     try:
         os.rename(download_path, download_path_for_rename)
     except:
         downloaded_folder_name = download_path
-    return downloaded_folder_name
+        pic_image_resized_path = download_path+"pic_image_resized/"
+    return downloaded_folder_name, pic_image_resized_path
