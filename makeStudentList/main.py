@@ -1,5 +1,4 @@
 import sys
-# import mailing
 import makeList
 import traceback
 import groupSplit
@@ -18,14 +17,13 @@ def selectFunc():
     print("차수명 : " + cha_name)
     print("===================================================================================================") 
     print("1 : 교육생 자동 조편성")
-    print("2 : 교육생 이미지 일괄 다운로드(증명사진/신분증사본/통장사본/자기소개서)")
-    print("3 : 교육생 입금정보 등록메일 자동발송(신분증사본/통장사본)")
-    print("4 : 교육생 PPT명단 작성")
-    print("5 : 교육생 명찰 제작")
-    print("6 : 프로그램 종료")
+    print("2 : 자료 일괄 다운로드(증명사진/신분증사본/통장사본/자기소개서)")
+    print("3 : 교육생 PPT명단 작성")
+    print("4 : 교육생 명찰 제작")
+    print("5 : 프로그램 종료")
     print("===================================================================================================") 
     func = input("사용할 기능의 번호를 입력한 후 엔터키를 눌러주세요.")
-    if func not in ["1", "2", "3", "4", "5", "6"]:
+    if func not in ["1", "2", "3", "4", "5"]:
         print("                                                              ")
         print("정확한 번호를 입력해 주세요.")
         print("                                                              ")
@@ -50,16 +48,6 @@ def selectFunc():
                 selectFunc()
         elif func == "3":
             if download_complete is True:
-                print("교육생 입금정보 등록메일 자동발송을 실행합니다...(신분증사본/통장사본)")
-                mailing.sendEmail(downloaded_folder_name, cha_name)
-                sleep(2)
-                selectFunc()
-            else:
-                print("교육생 이미지를 먼저 다운로드 받아주세요. (2번 기능을 먼저 실행해 주세요)")
-                sleep(2)
-                selectFunc()
-        elif func == "4":
-            if download_complete is True:
                 print("교육생 PPT명단 작성을 실행합니다...")
                 makeList.makePPT(pic_image_resized_path, cha_name)
                 sleep(2)
@@ -68,11 +56,11 @@ def selectFunc():
                 print("교육생 이미지를 먼저 다운로드 받아주세요. (2번 기능을 먼저 실행해 주세요)")
                 sleep(2)
                 selectFunc()
-        elif func == "5":
+        elif func == "4":
             print("교육생 명찰 제작을 실행합니다...")
             sleep(2)
             selectFunc()
-        elif func == "6":
+        elif func == "5":
             print("프로그램을 종료합니다.")
             sys.exit()
 
@@ -81,6 +69,6 @@ if __name__ == "__main__":
         selectFunc()
     except BaseException:
         print(sys.exc_info()[0])
-        print(traceback.format_exc())
+        # print(traceback.format_exc())
         print("종료하려면 아무키나 누르세요.")
         input()
