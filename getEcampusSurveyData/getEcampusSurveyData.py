@@ -29,7 +29,7 @@ def getExcelData():
             print("관리자 화면 로그인에 실패하였습니다.")
         else:
             survey_page = s.post("https://e-campus.posco.co.kr/AttendingMgr/S200406401.jsp", data=survey_data_excel)
-            download_file_name = "C:\\Users\\POSCOUSER\\Desktop\\이캠퍼스_설문점수 다운로드_" + now_datetime + ".xls"
+            download_file_name = "이캠퍼스_설문점수 다운로드_" + now_datetime + ".xls"
             try:
                 open(download_file_name, "wb").write(survey_page.content)
                 print("파일을 다운로드하였습니다. 저장경로 : " + download_file_name)
@@ -47,37 +47,48 @@ def getVocData():
             print("VOC 데이터를 정리하는 중...")
             results_data = []
             survey_page = s.post("https://e-campus.posco.co.kr/AttendingMgr/S200406400.jsp", data=survey_data_voc)
-            download_file_name = "C:\\Users\\POSCOUSER\\Desktop\\이캠퍼스_VOC 다운로드_" + now_datetime + ".xlsx"
-            list_soup = bs(survey_page.content, "html.parser")
-            trs = list_soup.findAll("table")[0].findAll("tbody")[0].findAll("tr")
-            for tr in trs:
-                this_cha_name = tr.findAll("td")[0].text
-                this_survey_name = tr.findAll("td")[1].text
-                this_start_date = tr.findAll("td")[2].text
-                this_end_date = tr.findAll("td")[3].text
-                this_results_link = tr.findAll("td")[0].findAll("a")[0].attrs["href"]
-                this_results_real_link = "https://e-campus.posco.co.kr/AttendingMgr/S200406410.jsp?CLC_E_PROJECT_ID=" + this_results_link.split("(")[1].split(",")[0] + "&CLC_E_PAPER_ID=" + this_results_link.split("(")[1].split(",")[1]
-                result_page = s.get(this_results_real_link)
-                result_soup = bs(result_page.content, "html.parser")
-                result_trs_temp = result_soup.findAll("table")[0].findAll("tbody")[0]
-                result_trs = str(result_trs_temp).replace("</tr>", "").replace("<tbody>", "").replace("</tbody>", "").replace("<tr>", "</tr><tr>")[6:].strip().split("</tr>")
-                for result_tr in result_trs:
-                    if len(result_tr) > 10 and len(result_tr.split("</td>")) > 0:
-                        this_tr_content = result_tr.split("</td>")
-                        for i, result_td in enumerate(this_tr_content):
-                            cleanr =re.compile('<.*?>')
-                            result_td_text = re.sub(cleanr, "", result_td).strip()
-                            if i > 1 and result_td_text.isdigit() is False and len(result_td_text) > 1:
-                                results_data.append({
-                                    "차수명" : this_cha_name,
-                                    "설문명" : this_survey_name,
-                                    "시작일" : this_start_date,
-                                    "종료일" : this_end_date,
-                                    "응답자" : re.sub(cleanr, "", this_tr_content[0]),
-                                    "직책" : re.sub(cleanr, "", this_tr_content[1]),
-                                    "문항번호" : str(i+1),
-                                    "응답내용" : result_td_text
-                                })
+            download_file_name = "이캠퍼스_VOC 다운로드_" + now_datetime + ".xlsx"
+            page_soup = bs(survey_page.content, "html.parser")
+            pages = page_soup.select(".paginate")[0].findAll("a")
+
+            for page in range(1, len(pages)+2): #페이지별 loop
+                print("  ")
+                print("총 " + str(len(pages)+2) + "페이지 중 " + str(page) + "페이지 크롤링중...")
+                survey_data_voc["PAGE_S200406400"] = page
+                this_survey_page = s.post("https://e-campus.posco.co.kr/AttendingMgr/S200406400.jsp", data=survey_data_voc)
+                
+                list_soup = bs(this_survey_page.content, "html.parser")
+                trs = list_soup.findAll("table")[0].findAll("tbody")[0].findAll("tr")
+                now_results_data_count = len(results_data)
+                for tr in trs: #설문별 loop
+                    this_cha_name = tr.findAll("td")[0].text
+                    this_survey_name = tr.findAll("td")[1].text
+                    this_start_date = tr.findAll("td")[2].text
+                    this_end_date = tr.findAll("td")[3].text
+                    this_results_link = tr.findAll("td")[0].findAll("a")[0].attrs["href"]
+                    this_results_real_link = "https://e-campus.posco.co.kr/AttendingMgr/S200406410.jsp?CLC_E_PROJECT_ID=" + this_results_link.split("(")[1].split(",")[0] + "&CLC_E_PAPER_ID=" + this_results_link.split("(")[1].split(",")[1]
+                    result_page = s.get(this_results_real_link)
+                    result_soup = bs(result_page.content, "html.parser")
+                    result_trs_temp = result_soup.findAll("table")[0].findAll("tbody")[0]
+                    result_trs = str(result_trs_temp).replace("</tr>", "").replace("<tbody>", "").replace("</tbody>", "").replace("<tr>", "</tr><tr>")[6:].strip().split("</tr>")
+                    for result_tr in result_trs: #설문응답자별 loop
+                        if len(result_tr) > 10 and len(result_tr.split("</td>")) > 0:
+                            this_tr_content = result_tr.split("</td>")
+                            for i, result_td in enumerate(this_tr_content): #설문응답 내용별 loop
+                                cleanr =re.compile('<.*?>')
+                                result_td_text = re.sub(cleanr, "", result_td).strip()
+                                if i > 1 and result_td_text.isdigit() is False and len(result_td_text) > 1:
+                                    results_data.append({
+                                        "차수명" : this_cha_name,
+                                        "설문명" : this_survey_name,
+                                        "시작일" : this_start_date,
+                                        "종료일" : this_end_date,
+                                        "응답자" : re.sub(cleanr, "", this_tr_content[0]),
+                                        "직책" : re.sub(cleanr, "", this_tr_content[1]),
+                                        "문항번호" : str(i+1),
+                                        "응답내용" : result_td_text
+                                    })
+                print(" ┗ VOC " + str(len(results_data)-now_results_data_count) + "건 입력완료(누적 " + str(len(results_data)) + "건)")
             try:
                 df = pd.DataFrame(results_data)
                 df.to_excel(download_file_name,
@@ -86,15 +97,17 @@ def getVocData():
                     index = True,
                     index_label = "id", 
                     startrow = 0, 
-                    startcol = 0, 
-                    #engine = 'xlsxwriter'
+                    startcol = 0
                 )
+                print("  ")
                 print("VOC를 저장하였습니다. 저장경로 : " + download_file_name)
             except:
+                print("  ")
                 print("VOC 저장에 실패하였습니다.")
 
 def setData():
     global login_id, login_pw, from_date, to_date, search_title, login_data, survey_data_excel, survey_data_voc
+
 
     #로그인 아이디/비번을 매번 입력하지 않으려면 아래 두줄 주석처리할 것
     login_id = input("이캠퍼스 아이디를 입력해 주세요 : ")
