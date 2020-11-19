@@ -18,10 +18,10 @@ login_data = None
 survey_data_excel = None
 survey_data_voc = None
 login_url = "https://e-campus.posco.co.kr/UserMain/portal_loginTop.jsp"
-now_datetime = str(int(datetime.now().timestamp()))
 
 def getExcelData():
     print("이캠퍼스 접속중...")
+    now_datetime = str(int(datetime.now().timestamp()))
     with requests.Session() as s:
         login_req = s.post(login_url, data=login_data)
         if login_req.status_code != 200:
@@ -29,7 +29,7 @@ def getExcelData():
             print("관리자 화면 로그인에 실패하였습니다.")
         else:
             survey_page = s.post("https://e-campus.posco.co.kr/AttendingMgr/S200406401.jsp", data=survey_data_excel)
-            download_file_name = "이캠퍼스_설문점수 다운로드_" + now_datetime + ".xls"
+            download_file_name = "이캠퍼스_설문점수 다운로드 결과_" + now_datetime + ".xls"
             try:
                 open(download_file_name, "wb").write(survey_page.content)
                 print("파일을 다운로드하였습니다. 저장경로 : " + download_file_name)
@@ -38,6 +38,7 @@ def getExcelData():
 
 def getVocData():
     print("이캠퍼스 접속중...")
+    now_datetime = str(int(datetime.now().timestamp()))
     with requests.Session() as s:
         login_req = s.post(login_url, data=login_data)
         if login_req.status_code != 200:
@@ -47,13 +48,13 @@ def getVocData():
             print("VOC 데이터를 정리하는 중...")
             results_data = []
             survey_page = s.post("https://e-campus.posco.co.kr/AttendingMgr/S200406400.jsp", data=survey_data_voc)
-            download_file_name = "이캠퍼스_VOC 다운로드_" + now_datetime + ".xlsx"
+            download_file_name = "이캠퍼스_VOC 다운로드 결과_" + now_datetime + ".xlsx"
             page_soup = bs(survey_page.content, "html.parser")
             pages = page_soup.select(".paginate")[0].findAll("a")
 
             for page in range(1, len(pages)+2): #페이지별 loop
                 print("  ")
-                print("총 " + str(len(pages)+2) + "페이지 중 " + str(page) + "페이지 크롤링중...")
+                print("총 " + str(len(pages)+1) + "페이지 중 " + str(page) + "페이지 크롤링중...")
                 survey_data_voc["PAGE_S200406400"] = page
                 this_survey_page = s.post("https://e-campus.posco.co.kr/AttendingMgr/S200406400.jsp", data=survey_data_voc)
                 
@@ -168,11 +169,12 @@ def checkYmdAndChangeFormat(ymd):
     return ymd
 
 def selectFunc():
-    print("===================================================================================================") 
+    print("이캠퍼스 집합과정 설문 결과를 손쉽게 다운받을 수 있는 도구입니다.")
+    print("===================================================================================================")
     print("1 : 설문점수 엑셀로 다운로드")
     print("2 : VOC 다운로드")
-    print("3 : 프로그램 종료")    
-    print("===================================================================================================") 
+    print("3 : 프로그램 종료")
+    print("===================================================================================================")
     func = input("사용할 기능의 번호를 입력한 후 엔터키를 눌러주세요.")
     if func not in ["1", "2", "3"]:
         print("                                                              ")
