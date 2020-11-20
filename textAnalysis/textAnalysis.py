@@ -33,9 +33,10 @@
 #    !!!링크 : https://m.blog.naver.com/PostView.nhn?blogId=kiddwannabe&logNo=221194451967&proxyReferer=https:%2F%2Fwww.google.com%2F
 
 # 5. 파이썬, jdk, 패키지 설치가 모두 끝났다면 본 코드 파일을 수정하여 파일명과 시트명, 데이터 영역을 설정해 주세요.
-#    아래 127번 라인으로 이동하여 loadTextData() 함수에 입력되어 있는 파라미터를 여러분에 맞게 수정하면 됩니다.
+#    코드 하단의 [if __name__ == "__main__":] 블럭 내에 있는 loadTextData() 함수로 이동하여 파라미터를 여러분에 맞게 수정하면 됩니다.
 #    파라미터 순서대로 파일명, 시트명, 셀영역 정보를 입력해 주세요.
 #    !!!파라미터 입력 시에는 파라미터 내용을 반드시 따옴표로 감싸 주세요!
+#    !!!엑셀 파일이 암호화되어 있을 경우 오류가 발생합니다. 복호화하여 사용하거나, 복호화가 어렵다면 pandas의 pd.clipboard() 함수를 이용해 데이터를 로드하는 방법을 알아보세요.
 
 # 6. 이제 마지막입니다. 코드 파일(textAnalysis.py) 파일이 있는 폴더로 이동해 코드를 실행해 주세요.
 #    1) 커멘드 창을 열고(윈도우키 → cmd 입력 → 엔터하여 커멘드창 실행), 아래 명령어를 입력해 주세요.
@@ -124,7 +125,7 @@ def makeWordCloud(keywords_and_frequency, results_file_name="wordcloud.png"):
 if __name__ == "__main__":
     #Step1 : 엑셀파일에 있는 텍스트를 불러와 한줄짜리 String으로 붙여 text_data 변수(String)로 출력해 준다.
     #파라미터 설명 : 분석할 엑셀파일명, 엑셀파일에 있는 시트명, 텍스트가 있는 셀의 범위
-    text_data = loadTextData("sample_data.xlsx","VOC결과", "C2:C415")
+    text_data = loadTextData("sample_data.xlsx", "VOC결과", "C2:C415")
 
     #Step2 : text_data에 있는 단어를 형태소별로 분리하고, 각 단어별 빈도수를 계산한 결과를 txt파일로 저장 및 keywords_and_frequency 변수(딕셔너리)로 출력해 준다.
     #파라미터 설명 : 분석할 텍스트 원본, 결과를 저장할 파일명
