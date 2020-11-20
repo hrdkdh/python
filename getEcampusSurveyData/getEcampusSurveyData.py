@@ -16,7 +16,7 @@ to_date = None
 search_title = None
 login_data = None
 survey_data_excel = None
-survey_data_voc = None
+survey_data_voc = None 
 login_url = "https://e-campus.posco.co.kr/UserMain/portal_loginTop.jsp"
 headers = {
     "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
