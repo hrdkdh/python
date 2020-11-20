@@ -18,17 +18,36 @@ login_data = None
 survey_data_excel = None
 survey_data_voc = None
 login_url = "https://e-campus.posco.co.kr/UserMain/portal_loginTop.jsp"
+headers = {
+    "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+    "Accept-Encoding" : "gzip, deflate, br",
+    "Accept-Language" : "ko,ko-KR;q=0.9,en;q=0.8",
+    "Cache-Control" : "max-age=0",
+    "Connection" : "keep-alive",
+    # "Content-Length" : "46",
+    "Content-Type" : "application/x-www-form-urlencoded",
+    # "Cookie" : "_ga=GA1.3.1808224504.1589257481; gitple-m-1merE0mUs6OXn3H7MMdpUUvIm5SqWF80={"state":"close"}; JSESSIONID=s0XjN0rf2Ctd__GW2k2Lkkw7bJlZqNNiKaSqh0StfM3rJ1WuFUn4!-1721597082",
+    "Host" : "e-campus.posco.co.kr",
+    "Origin" : "http://e-campus.posco.co.kr",
+    "Referer" : "http://e-campus.posco.co.kr/",
+    "Sec-Fetch-Dest" : "document",
+    "Sec-Fetch-Mode" : "navigate",
+    "Sec-Fetch-Site" : "cross-site",
+    "Sec-Fetch-User" : "?1",
+    "Upgrade-Insecure-Requests" : "1",
+    "User-Agent" : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36"
+}
 
 def getExcelData():
     print("이캠퍼스 접속중...")
     now_datetime = str(int(datetime.now().timestamp()))
     with requests.Session() as s:
-        login_req = s.post(login_url, data=login_data)
+        login_req = s.post(login_url, headers = headers, data=login_data)
         if login_req.status_code != 200:
             print(login_req.status_code)
             print("관리자 화면 로그인에 실패하였습니다.")
         else:
-            survey_page = s.post("https://e-campus.posco.co.kr/AttendingMgr/S200406401.jsp", data=survey_data_excel)
+            survey_page = s.post("https://e-campus.posco.co.kr/AttendingMgr/S200406401.jsp", headers = headers, data=survey_data_excel)
             download_file_name = "이캠퍼스_설문점수 다운로드 결과_" + now_datetime + ".xls"
             try:
                 open(download_file_name, "wb").write(survey_page.content)
@@ -40,14 +59,15 @@ def getVocData():
     print("이캠퍼스 접속중...")
     now_datetime = str(int(datetime.now().timestamp()))
     with requests.Session() as s:
-        login_req = s.post(login_url, data=login_data)
+        login_req = s.post(login_url, headers = headers, data=login_data)
         if login_req.status_code != 200:
             print(login_req.status_code)
+            print(login_req.text)
             print("관리자 화면 로그인에 실패하였습니다.")
         else:
             print("VOC 데이터를 정리하는 중...")
             results_data = []
-            survey_page = s.post("https://e-campus.posco.co.kr/AttendingMgr/S200406400.jsp", data=survey_data_voc)
+            survey_page = s.post("https://e-campus.posco.co.kr/AttendingMgr/S200406400.jsp", headers = headers, data=survey_data_voc)
             download_file_name = "이캠퍼스_VOC 다운로드 결과_" + now_datetime + ".xlsx"
             page_soup = bs(survey_page.content, "html.parser")
             pages = page_soup.select(".paginate")[0].findAll("a")
@@ -56,7 +76,7 @@ def getVocData():
                 print("  ")
                 print("총 " + str(len(pages)+1) + "페이지 중 " + str(page) + "페이지 크롤링중...")
                 survey_data_voc["PAGE_S200406400"] = page
-                this_survey_page = s.post("https://e-campus.posco.co.kr/AttendingMgr/S200406400.jsp", data=survey_data_voc)
+                this_survey_page = s.post("https://e-campus.posco.co.kr/AttendingMgr/S200406400.jsp", headers = headers, data=survey_data_voc)
                 
                 list_soup = bs(this_survey_page.content, "html.parser")
                 trs = list_soup.findAll("table")[0].findAll("tbody")[0].findAll("tr")
@@ -68,7 +88,7 @@ def getVocData():
                     this_end_date = tr.findAll("td")[3].text
                     this_results_link = tr.findAll("td")[0].findAll("a")[0].attrs["href"]
                     this_results_real_link = "https://e-campus.posco.co.kr/AttendingMgr/S200406410.jsp?CLC_E_PROJECT_ID=" + this_results_link.split("(")[1].split(",")[0] + "&CLC_E_PAPER_ID=" + this_results_link.split("(")[1].split(",")[1]
-                    result_page = s.get(this_results_real_link)
+                    result_page = s.get(this_results_real_link, headers = headers)
                     result_soup = bs(result_page.content, "html.parser")
                     result_trs_temp = result_soup.findAll("table")[0].findAll("tbody")[0]
                     result_trs = str(result_trs_temp).replace("</tr>", "").replace("<tbody>", "").replace("</tbody>", "").replace("<tr>", "</tr><tr>")[6:].strip().split("</tr>")
