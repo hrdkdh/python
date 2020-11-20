@@ -5,17 +5,21 @@
 #    vs code 다운로드 링크 : https://code.visualstudio.com/docs/?dv=win
 #    sublime text 다운로드 링크 : https://www.sublimetext.com/
 #    에디터별 확장 패키지를 설치하면 더 편리하게 코드를 수정하고 실행할 수 있지만... 여기서는 설명을 생략하겠습니다.
-#
+#    !!!아나콘다에 있는 주피터 노트북을 사용한다면 따로 설치할 필요 없습니다.
+
 # 1. 실행을 확인한 파이썬 버전은 3.7.x 입니다. 다른 버전을 설치할 경우 실행되지 않을 수 있습니다.
 #    아래 링크에서 파이썬을 다운받은 후 설치해 주세요.
 #    파이썬 3.7.x 다운로드 링크 : https://www.python.org/ftp/python/3.7.9/python-3.7.9-amd64.exe
+#    !!!아나콘다를 사용한다면 따로 설치할 필요 없습니다. 다만, 아나콘다의 파이썬 interpreter 버전이 3.7.x인지 확인해 주세요.
+#    !!!파이썬 버전이 맞지 않다 해도 정상 실행될 수 있으니 일단 go on하고, 실행되지 않는다면 3.7.x 버전으로 다시 설치해 주세요.
 
-# 2. konlpy 패키지를 설치하려면 jdk 1.7 이상이 설치되어 있어야 합니다. 아래 링크에서 오라클 회원가입 후 다운받아 주세요.
+# 2. 본 코드에서는 비정형 데이터인 텍스트의 형태소 분석을 위해 konlpy 패키지를 사용합니다. (konlpy가 궁금하다면 구글링하세요)
+#    어쨌든... 파이썬에 konlpy 패키지를 설치하려면 jdk 1.7 이상이 설치되어 있어야 합니다. 아래 링크에서 오라클 회원가입 후 다운받아 주세요.
 #    jdk 다운로드 링크 : https://www.oracle.com/kr/java/technologies/javase/javase-jdk8-downloads.html
 #    스크롤을 쭈욱 내려 Windows x64 버전을 다운받아 설치하면 됩니다.
 #    (만약 파이썬을 32bit로 설치했다면.. jdk도 32bit 버전으로 다운받아 설치해 주세요)
 
-# 3. jdk 설치 후 윈도우 환경변수에서 JAVA_HOME 및 Path 설정을 꼭 하여 주세요
+# 3. jdk 설치 후 윈도우 환경변수에서 JAVA_HOME 및 Path 설정을 꼭 하여 주세요. 별로 어렵지 않습니다.
 #    윈도우 JAVA_HOME 및 Path 설정방법 안내 링크 : https://prolite.tistory.com/975
 #    !!!링크에 설명된 JAVA_HOME 링크는 여러분이 설치한 자바 버전에 따라 다를 수 있습니다.
 #    !!!반드시 파일탐색기로 C:\Program Files\Java 폴더에 들어간 다음 jdk-1.x.x_xxx 정보를 확인한 후 그에 맞게 JAVA_HOME 경로를 입력해 주세요.
