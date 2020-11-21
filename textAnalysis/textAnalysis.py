@@ -1,5 +1,9 @@
 #-*- coding:utf-8 -*-
-#
+
+#### 코드에 대한 설명을 영상으로 제작하였습니다. 아래 링크를 참고하세요.    #### 
+#### https://photos.app.goo.gl/yVwtuEzuXTEvusR58            ####
+#### 영상 속 코드는 아래 코드와 내용이 조금 상이하지만 80% 이상 동일합니다. ####
+
 # 0. 파이썬 코드 수정을 위해서는 윈도우 메모장도 좋지만 코드 에디터를 사용하는 것이 낫습니다. 먼저 에디터를 설치해 주세요.
 #    vs code나 sublime text를 많이 사용합니다.
 #    vs code 다운로드 링크 : https://code.visualstudio.com/docs/?dv=win
