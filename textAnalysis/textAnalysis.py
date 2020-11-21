@@ -24,14 +24,19 @@
 #    !!!링크에 설명된 JAVA_HOME 링크는 여러분이 설치한 자바 버전에 따라 다를 수 있습니다.
 #    !!!반드시 파일탐색기로 C:\Program Files\Java 폴더에 들어간 다음 jdk-1.x.x_xxx 정보를 확인한 후 그에 맞게 JAVA_HOME 경로를 입력해 주세요.
 
-# 4. jdk까지 설치되었다면 openpyxl, konlpy, collections, matplotlib, wordcloud 패키지를 설치하여야 합니다.
+# 4. jdk까지 설치되었다면 openpyxl, Jpype1, konlpy, collections, matplotlib, wordcloud 패키지를 설치하여야 합니다.
 #    아래 명령어를 커멘드 라인에 차례로 입력한 후 설치해 주세요. (커멘드 창은 윈도우키 → cmd 입력 → 엔터하여 실행)
 #    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org openpyxl
+#    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org Jpype1
 #    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org konlpy
 #    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org collections
 #    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org matplotlib
 #    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org wordcloud
-   
+     
+#    !!!잠깐! Jpype1 설치 시 아래와 같은 오류가 나온다면?
+#    !!![error: Microsoft Visual C++ 14.0 is required. Get it with "Build Tools for Visual Studio"]
+#    !!!이 링크를 참고하여 C++ 빌드툴을 설치하세요 : https://m.blog.naver.com/beacon71/221872094394
+
 #    !!!아나콘다에서 설치할 경우 아나콘다 내에서 패키지를 설치하여야 합니다.
 #    !!!아나콘다에서 패키지를 설치하는 방법은 아래 링크를 참고해 주세요.
 #    !!!링크 : https://m.blog.naver.com/PostView.nhn?blogId=kiddwannabe&logNo=221194451967&proxyReferer=https:%2F%2Fwww.google.com%2F
