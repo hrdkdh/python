@@ -5,6 +5,7 @@ import pandas as pd
 from time import sleep
 from pptx.util import Pt
 from pptx import Presentation
+from pptx.enum.text import MSO_ANCHOR
 from pptx.dml.color import ColorFormat, RGBColor
 
 #폴더 생성 및 PPT 생성을 위한 정보
@@ -37,9 +38,10 @@ def makePPT():
         for shape in this_slide.shapes:
             if shape.has_text_frame and shape.text_frame.text == "타이틀":
                 shape.text_frame.paragraphs[0].text = str(df.loc[idx, "비즈니스 시나리오"])
-                shape.text_frame.paragraphs[0].font.size = Pt(13)
-                shape.text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 0)
-                shape.text_frame.paragraphs[0].font.bold = False
+                shape.text_frame.paragraphs[0].font.size = Pt(20)
+                shape.text_frame.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
+                shape.text_frame.paragraphs[0].font.bold = True
+                shape.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
             elif shape.has_table:
                 for r in range(len(shape.table.rows)):
                     for c in range(len(shape.table.rows[r].cells)):
