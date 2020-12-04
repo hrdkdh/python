@@ -28,11 +28,13 @@ def checkClipboard():
 
 def makePPT():
     df = checkClipboard()
-    print("PPT로 작성하는 중...")
+    print("PPT 작성을 시작합니다.")
 
     prs = Presentation("master.pptx")
-
+    percent = 0
     for idx in range(len(df)):
+        percent = str(round((idx/len(df))*100)) + "%"
+        print(f'{percent} 작성중...\r', end=" └")
         duplicate_slide(prs, 1)
         this_slide = prs.slides[idx+2]
         for shape in this_slide.shapes:
@@ -61,7 +63,7 @@ def makePPT():
 
     makeDownloadDirectory()
     prs.save(filesave_root_path+"비즈니스 시나리오.pptx")
-    print("작성완료")
+    print("\n작성완료")
 
 def duplicate_slide(prs, index):
     template = prs.slides[index]
