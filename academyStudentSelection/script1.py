@@ -91,7 +91,7 @@ def get_app_data():
         if student_page_url == "":
             print("차수명이 잘못되어 교육생 정보 다운로드에 실패하였습니다.")
             print("차수명을 정확히 입력한 후 다시 시도해 주세요.")
-            sleep(2)
+            exit()
             
         print("교육생 정보 다운로드 폴더 생성중...")
         makeDownloadDirectory(cha_name)
@@ -146,7 +146,9 @@ def cal_semi_score(cha_name, file_name_list):
     # 졸업예정년월 체크하여 적합여부 처리
     print("--------------------------------------------------------------")
     print("만 34세 이하, 졸업여부, 학점, 가산점 체크하여 점수 계산중...")
-    for i in range(len(df["학부졸업(예정)년월"])):
+    for i in range(len(df["성명"])):
+        df = df.astype({"학부졸업(예정)년월": "str", "생년월일": "str"})
+
         #졸업예정년월 전처리
         df_grad_ym = df["학부졸업(예정)년월"].loc[i].strip().replace(" ","").replace("-","").replace(".","")
         if len(df_grad_ym) == 5:
@@ -156,7 +158,7 @@ def cal_semi_score(cha_name, file_name_list):
         elif len(df_grad_ym) == 6:
             pass
         else:
-            df_grad_ym = input("졸업예정년월 형식 오류를 발견하였습니다. [{}]에 대해 YYYYMM 형식으로 지금 입력해 주세요.".format(df_grad_ym))
+            df_grad_ym = input("졸업예정년월 형식 오류를 발견하였습니다. {} : [{}]에 대해 YYYYMM 형식으로 지금 입력해 주세요 : ".format(df["성명"].loc[i], df_grad_ym))
             df_grad_ym = df_grad_ym.strip().replace(" ","").replace("-","").replace(".","")
         df_grad_ym = df_grad_ym[:4] + "-" + df_grad_ym[4:]
         df["학부졸업(예정)년월"].loc[i] = df_grad_ym
@@ -178,11 +180,16 @@ def cal_semi_score(cha_name, file_name_list):
         
         # 만 34세 이하만 적합
         this_year = datetime.datetime.now().year
-        this_birth = df["생년월일"].loc[i]
-        this_birth = int(this_birth[:4])
-        if this_birth < this_year - 34:
+        this_birth = df["생년월일"].loc[i].strip().replace(" ","").replace("-","").replace(".","")
+        if len(this_birth) != 8:
+            this_birth = input("생년월일 형식 오류를 발견하였습니다. {} : [{}]에 대해 YYYYMMDD 형식으로 지금 입력해 주세요 : ".format(df["성명"].loc[i], this_birth))
+            this_birth = this_birth.strip().replace(" ","").replace("-","").replace(".","")
+
+        this_birth_year = int(this_birth[:4])
+        if this_birth_year < this_year - 34:
             df["적합여부"].loc[i] = 0
             print(df["성명"].loc[i] + " : 만 34세 이상으로 부적합 처리함")
+        df["생년월일"].loc[i] = this_birth
 
         # 졸업여부 가산점
         if int(day_gap.days) >= 0 :
@@ -332,7 +339,7 @@ def makeDownloadDirectory(cha_name):
             raise
 
 if __name__ == "__main__":
-    cha_name = input("과정명을 입력하세요: ")
+    cha_name = input("과정명을 입력하세요 : ").strip()
     cha_name, file_name_list = get_app_data()
     cal_semi_score(cha_name, file_name_list)
 
